@@ -1,12 +1,16 @@
 package router
 
 import (
-	"github.com/gogf/gf-demos/app/api/chat"
-	"github.com/gogf/gf-demos/app/api/curd"
-	"github.com/gogf/gf-demos/app/api/user"
-	"github.com/gogf/gf-demos/app/service/middleware"
+	"gfx/app/api/mdm"
+	//"gfx/app/api/chat"
+	//"gfx/app/api/curd"
+	//"gfx/app/api/user"
+	//	"gfx/app/service/middleware"
+
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
+
+	_ "gfx/app/api/mdm"
 )
 
 // 你可以将路由注册放到一个文件中管理，
@@ -20,15 +24,8 @@ func init() {
 
 	// 分组路由注册方式
 	s.Group("/", func(group *ghttp.RouterGroup) {
-		ctlChat := new(chat.Controller)
-		ctlUser := new(user.Controller)
-		group.Middleware(middleware.CORS)
-		group.ALL("/chat", ctlChat)
-		group.ALL("/user", ctlUser)
-		group.ALL("/curd/:table", new(curd.Controller))
-		group.Group("/", func(group *ghttp.RouterGroup) {
-			group.Middleware(middleware.Auth)
-			group.ALL("/user/profile", ctlUser, "Profile")
-		})
+
+		//group.Middleware(middleware.CORS)
+		group.ALL("/mdm", new(mdm.HttpEntry))
 	})
 }

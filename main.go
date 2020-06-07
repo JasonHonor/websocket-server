@@ -1,11 +1,24 @@
 package main
 
 import (
-	_ "github.com/gogf/gf-demos/boot"
-	_ "github.com/gogf/gf-demos/router"
+	_ "gfx/boot"
+
+	"gfx/library/service"
+
 	"github.com/gogf/gf/frame/g"
 )
 
 func main() {
-	g.Server().Run()
+
+	svc := service.SystemService{
+		Name:        "SysCenter",
+		DisplayName: "SysCenter",
+		Description: "Centerside for syscenter.",
+		MainLoop: func() {
+			g.Log().SetStack(false)
+			g.Server().Run()
+		},
+	}
+
+	svc.Run()
 }

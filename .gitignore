@@ -19,3 +19,5 @@ config/config.toml
 main
 .vscode
 go.sum
+/document/client.md
+/document/server.md
