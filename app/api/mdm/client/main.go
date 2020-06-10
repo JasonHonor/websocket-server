@@ -1,10 +1,17 @@
 package main
 
 import (
+	"client/servant"
 	"fmt"
+	"net/url"
 	"os"
 
+	"github.com/gorilla/websocket"
 	"github.com/jvehent/service-go"
+
+	. "gfx/app/api/mdm"
+
+	"github.com/gogf/gf/encoding/gbase64"
 )
 
 var log service.Logger
@@ -77,22 +84,53 @@ var exit = make(chan struct{})
 
 func doWork() {
 	log.Info("I'm Running!")
-	/*
-		ticker := time.NewTicker(time.Minute)
-		for {
-			select {
-			case <-ticker.C:
-				log.Info("Still running...")
-			case <-exit:
-				ticker.Stop()
-				return
-			}
-		}
-	*/
 
+	u := url.URL{Scheme: "ws", Host: "127.0.0.1:8199", Path: "/mdm"}
+	log.Info("connecting to %s", u.String())
+
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		log.Error("dial:", err)
+		return
+	}
+
+	c.SetCloseHandler(onClose)
+	defer c.Close()
+
+	var resp = Response{}
+	var req = Request{}
+	var traceId string
+	for {
+		errRdr := c.ReadJSON(&req)
+		if errRdr != nil {
+			log.Info("read:", errRdr)
+			return
+		}
+
+		traceId = req.TraceId
+		fmt.Printf("recv %v\n", req)
+
+		s, err := servant.ShellExec(req.Cmd)
+
+		c.WriteMessage(websocket.TextMessage,
+			[]byte(fmt.Sprintf(`{"cmd":"%s","trace_id":"%s","result":"%s","error":"%v"}`, req.Cmd, traceId,
+				gbase64.EncodeString(s), err)))
+
+		errRdr2 := c.ReadJSON(&resp)
+		if errRdr2 != nil {
+			log.Error("read:", errRdr2)
+			return
+		}
+		fmt.Printf("recv2 %v\n", resp)
+	}
 }
 
 func stopWork() {
 	log.Info("I'm Stopping!")
 	exit <- struct{}{}
+}
+
+func onClose(code int, text string) error {
+	fmt.Printf("Closed\n")
+	return nil
 }
