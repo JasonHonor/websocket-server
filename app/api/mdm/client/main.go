@@ -7,25 +7,6 @@ import (
 	"github.com/jvehent/service-go"
 )
 
-/*
-//Remote Control Mode:
-	//		串行化：receive(run-book)->execute(run-book)->report{send->receive}->nop(wait receive).
-	//      并行：receive(thread1)				接收所有消息，区分job和response，job->newJob,response->workerThread
-	//			 newJob(thread1)				只处理job任务
-	//				PickJob(thread2)
-	//				Execute(thread2)
-	//				Report(thread2)
-	//Execute Command Mode:
-	//		send->receive->nop.
-
-	//CommandList:
-	//1. download
-	//2. upgrade
-	//3. shell
-	//4. queue:队列  job参数：a.默认队列 default,b.后台线程  thread,c.新建队列 queue。
-	//5. job参数： 任务编号：jobId, 客户端列表：agentList，命令:command,队列名称:queue(为空，默认队列)。
-*/
-
 var log service.Logger
 
 func main() {

@@ -16,7 +16,7 @@ var wg sync.WaitGroup
 
 var nConns = 1000
 var nActions = 1
-var nWait = 1
+var nWait = 0
 var bWriteFirstMode = false
 
 func main() {
@@ -27,6 +27,10 @@ func main() {
 }
 
 func TestConnect(t *testing.T) {
+
+	if bWriteFirstMode == false {
+		nActions = 1
+	}
 
 	for i := 0; i < nConns; i++ {
 
@@ -65,7 +69,7 @@ func testConnect(host, code string, cntx int, writeFirstMode bool, nWait int) {
 
 	for i := 0; i < nActions; i++ {
 
-		if writeFirstMode {
+		if writeFirstMode { //客户端请求模式
 			c.WriteMessage(websocket.TextMessage,
 				[]byte(fmt.Sprintf(`{"cmd":"get_session_id","trace_id":"%s","term_no":"rk3288|TESTWS"}`, traceId)))
 
@@ -77,7 +81,7 @@ func testConnect(host, code string, cntx int, writeFirstMode bool, nWait int) {
 
 			fmt.Printf("recv %v\n", resp)
 			traceId = resp.TraceId
-		} else {
+		} else { //推送处理模式
 			errRdr := c.ReadJSON(&resp)
 			if errRdr != nil {
 				log.Println("read:", errRdr)
