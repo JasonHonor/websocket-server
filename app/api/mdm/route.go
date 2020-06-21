@@ -6,8 +6,6 @@ import (
 	"github.com/gogf/gf/container/gmap"
 )
 
-type WSHandler func(context *WsWorker, request *Request, response *Response)
-
 var (
 	gRoutes = gmap.NewStrAnyMap(true)
 )

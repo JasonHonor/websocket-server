@@ -4,6 +4,8 @@ import (
 	"github.com/gogf/gf/net/ghttp"
 )
 
+type WSHandler func(context *WsWorker, request *Request, response *Response)
+
 type WsWorker struct {
 	Request   *ghttp.Request
 	Websocket *ghttp.WebSocket

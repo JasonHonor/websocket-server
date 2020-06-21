@@ -31,3 +31,12 @@ func (c *HttpEntry) Index(r *ghttp.Request) {
 
 	fmt.Printf("+")
 }
+
+func (c *HttpEntry) Report(r *ghttp.Request) {
+	jsonData, err := r.GetJson()
+	if err != nil {
+		g.Log().Printf("解析Report请求失败:%s", err.Error())
+		return
+	}
+	g.Log().Printf("Report %v\n", jsonData.MustToJsonString())
+}

@@ -97,7 +97,6 @@ func doWork() {
 	c.SetCloseHandler(onClose)
 	defer c.Close()
 
-	var resp = Response{}
 	var req = Request{}
 	var traceId string
 	for {
@@ -112,16 +111,14 @@ func doWork() {
 
 		s, err := servant.ShellExec(req.Cmd)
 
-		c.WriteMessage(websocket.TextMessage,
-			[]byte(fmt.Sprintf(`{"cmd":"%s","trace_id":"%s","result":"%s","error":"%v"}`, req.Cmd, traceId,
-				gbase64.EncodeString(s), err)))
-
-		errRdr2 := c.ReadJSON(&resp)
-		if errRdr2 != nil {
-			log.Error("read:", errRdr2)
-			return
+		var sError string
+		if err != nil {
+			sError = err.Error()
 		}
-		fmt.Printf("recv2 %v\n", resp)
+
+		Report("http://127.0.0.1:8199/mdm/report", fmt.Sprintf(`{"cmd":"%s","trace_id":"%s","result":"%s","error":"%v"}`,
+			req.Cmd, traceId,
+			gbase64.EncodeString(s), gbase64.EncodeString(sError)))
 	}
 }
 

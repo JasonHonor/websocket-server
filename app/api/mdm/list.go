@@ -12,9 +12,8 @@ func (c *HttpEntry) List(r *ghttp.Request) {
 }
 
 func (c *HttpEntry) Push(r *ghttp.Request) {
-	//r.Response.Write(fmt.Sprintf("clients count %v queue:%v", devices.Size(), len(JobQueue)))
 	for _, clientName := range deviceMapByName.Keys() {
 		ws := deviceMapByName.Get(clientName)
-		PushJson(ws.(*ghttp.WebSocket), "ls", "1")
+		PushJson(ws.(*ghttp.WebSocket), "pwd", "1")
 	}
 }

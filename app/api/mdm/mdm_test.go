@@ -69,7 +69,7 @@ func testConnect(host, code string, cntx int, writeFirstMode bool, nWait int) {
 
 	for i := 0; i < nActions; i++ {
 
-		if writeFirstMode { //客户端请求模式
+		if writeFirstMode { //客户端请求模式,REQ-RESP
 			c.WriteMessage(websocket.TextMessage,
 				[]byte(fmt.Sprintf(`{"cmd":"get_session_id","trace_id":"%s","term_no":"rk3288|TESTWS"}`, traceId)))
 
@@ -81,7 +81,7 @@ func testConnect(host, code string, cntx int, writeFirstMode bool, nWait int) {
 
 			fmt.Printf("recv %v\n", resp)
 			traceId = resp.TraceId
-		} else { //推送处理模式
+		} else { //推送处理模式,连接后获得会话ID. CONN->REQ->RESP
 			errRdr := c.ReadJSON(&resp)
 			if errRdr != nil {
 				log.Println("read:", errRdr)
