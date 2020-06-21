@@ -15,7 +15,7 @@ var (
 	//Max_Num = os.Getenv("MAX_NUM")
 	//MaxWorker = runtime.NumCPU()
 	//最大并发连接数
-	MaxWorker = 10000
+	MaxWorker = 1000
 	//最大队列长度
 	MaxQueue = 10000
 )

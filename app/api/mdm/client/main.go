@@ -1,30 +1,18 @@
 package main
 
 import (
+	"client/servant"
 	"fmt"
+	"net/url"
 	"os"
 
+	"github.com/gorilla/websocket"
 	"github.com/jvehent/service-go"
+
+	. "gfx/app/api/mdm"
+
+	"github.com/gogf/gf/encoding/gbase64"
 )
-
-/*
-//Remote Control Mode:
-	//		串行化：receive(run-book)->execute(run-book)->report{send->receive}->nop(wait receive).
-	//      并行：receive(thread1)				接收所有消息，区分job和response，job->newJob,response->workerThread
-	//			 newJob(thread1)				只处理job任务
-	//				PickJob(thread2)
-	//				Execute(thread2)
-	//				Report(thread2)
-	//Execute Command Mode:
-	//		send->receive->nop.
-
-	//CommandList:
-	//1. download
-	//2. upgrade
-	//3. shell
-	//4. queue:队列  job参数：a.默认队列 default,b.后台线程  thread,c.新建队列 queue。
-	//5. job参数： 任务编号：jobId, 客户端列表：agentList，命令:command,队列名称:queue(为空，默认队列)。
-*/
 
 var log service.Logger
 
@@ -96,22 +84,53 @@ var exit = make(chan struct{})
 
 func doWork() {
 	log.Info("I'm Running!")
-	/*
-		ticker := time.NewTicker(time.Minute)
-		for {
-			select {
-			case <-ticker.C:
-				log.Info("Still running...")
-			case <-exit:
-				ticker.Stop()
-				return
-			}
-		}
-	*/
 
+	u := url.URL{Scheme: "ws", Host: "127.0.0.1:8199", Path: "/mdm"}
+	log.Info("connecting to %s", u.String())
+
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		log.Error("dial:", err)
+		return
+	}
+
+	c.SetCloseHandler(onClose)
+	defer c.Close()
+
+	var resp = Response{}
+	var req = Request{}
+	var traceId string
+	for {
+		errRdr := c.ReadJSON(&req)
+		if errRdr != nil {
+			log.Info("read:", errRdr)
+			return
+		}
+
+		traceId = req.TraceId
+		fmt.Printf("recv %v\n", req)
+
+		s, err := servant.ShellExec(req.Cmd)
+
+		c.WriteMessage(websocket.TextMessage,
+			[]byte(fmt.Sprintf(`{"cmd":"%s","trace_id":"%s","result":"%s","error":"%v"}`, req.Cmd, traceId,
+				gbase64.EncodeString(s), err)))
+
+		errRdr2 := c.ReadJSON(&resp)
+		if errRdr2 != nil {
+			log.Error("read:", errRdr2)
+			return
+		}
+		fmt.Printf("recv2 %v\n", resp)
+	}
 }
 
 func stopWork() {
 	log.Info("I'm Stopping!")
 	exit <- struct{}{}
+}
+
+func onClose(code int, text string) error {
+	fmt.Printf("Closed\n")
+	return nil
 }

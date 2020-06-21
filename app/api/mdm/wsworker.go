@@ -17,7 +17,8 @@ import (
 
 var (
 	// 使用默认的并发安全Map
-	devices = gmap.New(true)
+	deviceMapBySocket = gmap.New(true)
+	deviceMapByName   = gmap.New(true)
 
 	// 使用并发安全的Set，用于设备唯一性校验
 	names = gset.NewStrSet(true)
@@ -86,7 +87,9 @@ func (c *WsWorker) appendDevice(r *ghttp.WebSocket) {
 	//保存在线信息
 	name := r.RemoteAddr().String()
 	names.Add(name)
-	devices.Set(c.Websocket, name)
+
+	deviceMapByName.Set(name, c.Websocket)
+	deviceMapBySocket.Set(c.Websocket, name)
 
 	r.SetCloseHandler(c.onClose)
 }
@@ -96,7 +99,8 @@ func (c *WsWorker) removeDevice(r *ghttp.WebSocket) {
 	//保存在线信息
 	name := r.RemoteAddr().String()
 	names.Remove(name)
-	devices.Remove(r)
+	deviceMapBySocket.Remove(r)
+	deviceMapByName.Remove(name)
 }
 
 func (c *WsWorker) onClose(int, string) error {
@@ -168,4 +172,17 @@ func (c *WsWorker) WriteJson(ws *ghttp.WebSocket, code int, message, cmd, traceI
 func (c *WsWorker) WriteJsonExit(r *ghttp.Request, ws *ghttp.WebSocket, err int, msg, cmd, traceId string, data ...interface{}) {
 	c.WriteJson(ws, err, msg, cmd, traceId, data...)
 	r.Exit()
+}
+
+func PushJson(ws *ghttp.WebSocket, cmd, traceId string, data ...interface{}) {
+
+	err := ws.WriteJSON(Request{
+		Cmd:     cmd,
+		TraceId: traceId,
+		Param:   data,
+	})
+
+	if err != nil {
+		g.Log().Error(err)
+	}
 }
