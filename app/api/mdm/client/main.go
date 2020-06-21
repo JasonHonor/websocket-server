@@ -98,7 +98,7 @@ func doWork() {
 	defer c.Close()
 
 	var req = Request{}
-	var traceId string
+	var token string
 	for {
 		errRdr := c.ReadJSON(&req)
 		if errRdr != nil {
@@ -106,7 +106,7 @@ func doWork() {
 			return
 		}
 
-		traceId = req.TraceId
+		token = req.TraceId
 		fmt.Printf("recv %v\n", req)
 
 		s, err := servant.ShellExec(req.Cmd)
@@ -116,8 +116,8 @@ func doWork() {
 			sError = err.Error()
 		}
 
-		Report("http://127.0.0.1:8199/mdm/report", fmt.Sprintf(`{"cmd":"%s","trace_id":"%s","result":"%s","error":"%v"}`,
-			req.Cmd, traceId,
+		Report("http://127.0.0.1:8199/mdm/report", fmt.Sprintf(`{"cmd":"%s","token":"%s","result":"%s","error":"%v"}`,
+			req.Cmd, token,
 			gbase64.EncodeString(s), gbase64.EncodeString(sError)))
 	}
 }

@@ -15,8 +15,8 @@ func (c *HttpEntry) Push(r *ghttp.Request) {
 	for _, workerId := range mapByWorkerId.Keys() {
 		worker := mapByWorkerId.Get(workerId)
 		if worker != nil {
-			wsWorker := worker.(WsWorker)
-			PushJson(wsWorker.Websocket, "pwd", "1")
+			wsWorker := worker.(*WsWorker)
+			PushJson(wsWorker.Websocket, "pwd", wsWorker.WorkerId)
 		}
 	}
 }
