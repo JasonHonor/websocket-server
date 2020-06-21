@@ -20,6 +20,8 @@ func (c *HttpEntry) Index(r *ghttp.Request) {
 			Request:   r,
 		}
 
+		fmt.Printf("RequetWorker %v\n", wsWorker)
+
 		// fetch job
 		work := Job{serload: wsWorker.Index}
 		JobQueue <- work

@@ -17,8 +17,8 @@ import (
 
 var (
 	// 使用默认的并发安全Map
-	deviceMapBySocket = gmap.New(true)
-	deviceMapByName   = gmap.New(true)
+	mapByWorker   = gmap.New(true)
+	mapByWorkerId = gmap.New(true)
 
 	// 使用并发安全的Set，用于设备唯一性校验
 	names = gset.NewStrSet(true)
@@ -39,12 +39,15 @@ func (c *WsWorker) Index() {
 	//r := c.Request
 	ws := c.Websocket
 
+	//生成连接ID
 	uuid, _ := guuid.NewUUID()
 	sUUID := fmt.Sprintf("%d", gcrc32.Encrypt(uuid.String()))
 	c.WriteJson(ws, 0, "", "init", sUUID)
 	traceId = sUUID
 
-	c.appendDevice(ws)
+	c.WorkerId = traceId
+
+	c.appendDevice()
 
 	for {
 		// 阻塞读取WS数据
@@ -83,29 +86,26 @@ func (c *WsWorker) Index() {
 	ws.Close()
 }
 
-func (c *WsWorker) appendDevice(r *ghttp.WebSocket) {
-	//保存在线信息
-	name := r.RemoteAddr().String()
-	names.Add(name)
+func (c *WsWorker) appendDevice() {
 
-	deviceMapByName.Set(name, c.Websocket)
-	deviceMapBySocket.Set(c.Websocket, name)
+	mapByWorkerId.Set(c.WorkerId, c)
+	mapByWorker.Set(c, c.WorkerId)
 
-	r.SetCloseHandler(c.onClose)
+	c.Websocket.SetCloseHandler(c.onClose)
 }
 
-func (c *WsWorker) removeDevice(r *ghttp.WebSocket) {
+func (c *WsWorker) removeDevice() {
 
-	//保存在线信息
-	name := r.RemoteAddr().String()
+	//移除在线连接
+	name := c.WorkerId
 	names.Remove(name)
-	deviceMapBySocket.Remove(r)
-	deviceMapByName.Remove(name)
+	mapByWorker.Remove(c)
+	mapByWorkerId.Remove(name)
 }
 
 func (c *WsWorker) onClose(int, string) error {
 	fmt.Printf("OnClosed\n")
-	c.removeDevice(c.Websocket)
+	c.removeDevice()
 	return nil
 }
 

@@ -9,6 +9,7 @@ type WSHandler func(context *WsWorker, request *Request, response *Response)
 type WsWorker struct {
 	Request   *ghttp.Request
 	Websocket *ghttp.WebSocket
+	WorkerId  string
 }
 
 type Request struct {
