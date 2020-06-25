@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
 	"time"
 
 	"net/url"
@@ -18,9 +19,9 @@ import (
 	"github.com/gogf/gf/encoding/gbase64"
 
 	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/os/gproc"
 	"github.com/jpillora/overseer"
 	"github.com/jpillora/overseer/fetcher"
-	//"github.com/gogf/gf/os/gproc"
 )
 
 var BuildID = "0"
@@ -56,19 +57,30 @@ func main() {
 		//Fetcher: &fetcher.File{Path: "client2"},
 		Debug: bOvrDbg,
 	})
+	//prog(overseer.DisabledState)
 }
 
 //prog(state) runs in a child process
 func prog(state overseer.State) {
 
-	//g.Log().Info("Version:\t", BuildID)
+	var bIsSlaveProcess = false
+	if os.Getenv("OVERSEER_IS_SLAVE") == "1" {
+		bIsSlaveProcess = true
+	}
+
+	g.Log().Infof("Version:%s IsChild:%v IsSlave:%v\n", BuildID, gproc.IsChild(), bIsSlaveProcess)
 
 	srv := service.SystemService{
 		Name:        "SysAgent",
 		DisplayName: "SysAgent",
 		Description: "Clientside for SysAdmin.",
 		MainLoop: func() {
-			g.Log().Infof("I'm Running!")
+
+			if !bIsSlaveProcess {
+				return
+			}
+
+			g.Log().Infof("I'm Running! IsChild:%v\t", gproc.IsChild())
 
 			u := url.URL{Scheme: "ws", Host: "127.0.0.1:8199", Path: "/mdm"}
 			g.Log().Infof("connecting to %s", u.String())

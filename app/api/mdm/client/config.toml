@@ -8,6 +8,6 @@
     rotatebackupcompress=1
     
 [overseer]
-	debug = true
+	debug = false
 	interval = 30
 	url = "http://127.0.0.1:8199/mdm/upgrade"
