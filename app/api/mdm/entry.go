@@ -2,7 +2,9 @@ package mdm
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/gogf/gf/encoding/gbase64"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
 )
@@ -50,4 +52,36 @@ func (c *HttpEntry) Report(r *ghttp.Request) {
 	}
 
 	//继续处理客户端执行结果
+	sBase64Ret := jsonData.Get("result").(string)
+
+	if len(sBase64Ret) > 0 {
+		sResult, err := gbase64.DecodeString(sBase64Ret)
+		if err != nil {
+			fmt.Printf("ExecuteResult Error:%v\n", err.Error())
+		} else {
+			fmt.Printf("ExecuteResult:%v\n", string(sResult))
+		}
+	}
+}
+
+func (c *HttpEntry) Upgrade(r *ghttp.Request) {
+	g.Log().Printf("Upgrading...\n")
+
+	file := "/data/projects/websocket-server/app/api/mdm/client/client2"
+
+	fi, err := os.Stat(file)
+
+	if err != nil {
+		return
+	}
+	// 获取大小
+	size := fi.Size()
+
+	fmt.Printf("FileSize:%d\n", size)
+
+	if r.Response.Header().Get("Content-Length") == "" {
+		r.Response.Header().Set("Content-Length", fmt.Sprintf("%d", size))
+	}
+
+	r.Response.ServeFileDownload("/data/projects/websocket-server/app/api/mdm/client/client2", "client")
 }

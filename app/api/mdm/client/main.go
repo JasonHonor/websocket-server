@@ -6,17 +6,42 @@ import (
 	"net/url"
 	"os"
 
+	"time"
+
 	"github.com/gorilla/websocket"
 	"github.com/jvehent/service-go"
 
 	. "gfx/app/api/mdm"
 
 	"github.com/gogf/gf/encoding/gbase64"
+
+	"github.com/jpillora/overseer"
+	"github.com/jpillora/overseer/fetcher"
+
+	"github.com/gogf/gf/frame/g"
 )
 
 var log service.Logger
 
+var BuildID = "0"
+
 func main() {
+	overseer.Run(overseer.Config{
+		Program:   prog,
+		NoRestart: false,
+		Fetcher: &fetcher.HTTP{
+			URL:      "http://127.0.0.1:8199/mdm/upgrade",
+			Interval: 30 * time.Second,
+		},
+		//Fetcher: &fetcher.File{Path: "client2"},
+		Debug: true,
+	})
+}
+
+//prog(state) runs in a child process
+func prog(state overseer.State) {
+	fmt.Println("Version:\t", BuildID)
+
 	var name = "SysAgent"
 	var displayName = "SysAgent"
 	var desc = "Agent for syscenter."
@@ -78,19 +103,20 @@ func main() {
 	if err != nil {
 		s.Error(err.Error())
 	}
+
 }
 
 var exit = make(chan struct{})
 
 func doWork() {
-	log.Info("I'm Running!")
+	g.Log().Printf("I'm Running!")
 
 	u := url.URL{Scheme: "ws", Host: "127.0.0.1:8199", Path: "/mdm"}
-	log.Info("connecting to %s", u.String())
+	g.Log().Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		log.Error("dial:", err)
+		g.Log().Printf("dial:", err)
 		return
 	}
 
@@ -102,12 +128,12 @@ func doWork() {
 	for {
 		errRdr := c.ReadJSON(&req)
 		if errRdr != nil {
-			log.Info("read:", errRdr)
+			g.Log().Printf("read:%v", errRdr)
 			return
 		}
 
 		token = req.TraceId
-		fmt.Printf("recv %v\n", req)
+		g.Log().Printf("recv %v\n", req)
 
 		s, err := servant.ShellExec(req.Cmd)
 
