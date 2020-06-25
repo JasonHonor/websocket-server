@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/gogf/gf/frame/g"
 )
 
 func Report(url string, data string) {
@@ -15,7 +17,7 @@ func Report(url string, data string) {
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(btData))
 	if err != nil {
-		log.Error("Error reading request. ", err)
+		g.Log().Error("Error reading request. ", err)
 		return
 	}
 
@@ -29,6 +31,7 @@ func Report(url string, data string) {
 
 	// Set client timeout
 	client := &http.Client{Timeout: time.Second * 10}
+	defer client.CloseIdleConnections()
 
 	// Validate cookie and headers are attached
 	fmt.Println(req.Cookies())
@@ -37,7 +40,7 @@ func Report(url string, data string) {
 	// Send request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Error("Error reading response. ", err)
+		g.Log().Error("Error reading response. ", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -47,7 +50,7 @@ func Report(url string, data string) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Error("Error reading body. ", err)
+		g.Log().Error("Error reading body. ", err)
 		return
 	}
 

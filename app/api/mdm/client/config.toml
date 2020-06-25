@@ -1,0 +1,13 @@
+[logger]
+    path   = "logs"
+    level  = "all"
+    stdout = false
+    ststatus = 0
+    rotatesize = 512000
+    rotatebackuplimit=256
+    rotatebackupcompress=1
+    
+[overseer]
+	debug = true
+	interval = 30
+	url = "http://127.0.0.1:8199/mdm/upgrade"
