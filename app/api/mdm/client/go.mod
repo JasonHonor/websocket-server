@@ -5,6 +5,7 @@ go 1.14
 require (
 	gfx v0.0.0-00010101000000-000000000000
 	github.com/gogf/gf v1.13.1
+	github.com/gogf/guuid v1.0.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/jpillora/overseer v1.1.4
 	github.com/judwhite/go-svc v1.1.2

@@ -26,3 +26,6 @@ app/api/mdm/client/client
 app/api/mdm/client/client2
 __debug_bin
 gfx
+app/api/mdm/client/client
+app/api/mdm/client/client2.gz
+app/api/mdm/client/identity

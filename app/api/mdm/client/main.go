@@ -3,6 +3,7 @@ package main
 import (
 	"client/servant"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +18,9 @@ import (
 
 	"gfx/library/service"
 
+	"github.com/gogf/gf/crypto/gcrc32"
 	"github.com/gogf/gf/encoding/gbase64"
+	"github.com/gogf/guuid"
 
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/os/gproc"
@@ -27,6 +30,31 @@ import (
 
 //BuildID 编译版本号
 var BuildID = "0"
+
+//写入文件一行,自动附加换行符
+func WriteWithIoutil(name, content string) {
+	//data := []byte(content)
+	f, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	defer f.Close()
+	if err == nil {
+		f.WriteString(content)
+	}
+}
+
+func ReadWithIoutil(name string) string {
+	//data := []byte(content)
+	f, err := os.Open(name)
+	defer f.Close()
+	if err == nil {
+		fd, err := ioutil.ReadAll(f)
+		if err != nil {
+			fmt.Println("read to fd fail", err)
+			return ""
+		}
+		return string(fd)
+	}
+	return ""
+}
 
 func getAppDir() string {
 	dir, errDir := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -128,7 +156,22 @@ func onClose(code int, text string) error {
 	return nil
 }
 
+func genClientId() string {
+
+	var sUUID string
+	sUUID = ReadWithIoutil("identity")
+	if sUUID == "" {
+		uuid, _ := guuid.NewUUID()
+		sUUID = fmt.Sprintf("%d", gcrc32.Encrypt(uuid.String()))
+		WriteWithIoutil("identity", sUUID)
+	}
+	return sUUID
+}
+
 func doWork(c *websocket.Conn, sMdmURL string) {
+
+	sClientId := genClientId()
+
 	//连接建立成功，设置关闭方法和退出执行过程自动关闭连接
 	c.SetCloseHandler(onClose)
 	defer c.Close()
@@ -147,7 +190,14 @@ func doWork(c *websocket.Conn, sMdmURL string) {
 		token = req.TraceId
 		g.Log().Infof("recv %v", req)
 
-		s, err := servant.ShellExec(req.Cmd)
+		var sResult string
+		var err error = nil
+
+		if req.Cmd == "init" {
+			sResult = sClientId //client_id
+		} else {
+			sResult, err = servant.ShellExec(req.Cmd)
+		}
 
 		var sError string
 		if err != nil {
@@ -156,7 +206,7 @@ func doWork(c *websocket.Conn, sMdmURL string) {
 
 		Report(sMdmURL+"/report", fmt.Sprintf(`{"cmd":"%s","token":"%s","result":"%s","error":"%v"}`,
 			req.Cmd, token,
-			gbase64.EncodeString(s), gbase64.EncodeString(sError)))
+			gbase64.EncodeString(sResult), gbase64.EncodeString(sError)))
 
 	}
 }
