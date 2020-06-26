@@ -16,4 +16,4 @@ require (
 
 replace gfx => ../../../../../websocket-server
 
-replace github.com/jpillora/overseer => /home/wangjinhui/projects/overseer
+replace github.com/jpillora/overseer => ../../../../../overseer

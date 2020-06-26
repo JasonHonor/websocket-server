@@ -21,3 +21,8 @@ main
 go.sum
 /document/client.md
 /document/server.md
+*.log
+app/api/mdm/client/client
+app/api/mdm/client/client2
+__debug_bin
+gfx
