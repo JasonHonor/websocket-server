@@ -25,6 +25,7 @@ import (
 	"github.com/jpillora/overseer/fetcher"
 )
 
+//BuildID 编译版本号
 var BuildID = "0"
 
 func getAppDir() string {
@@ -57,7 +58,7 @@ func main() {
 	if os.Getenv("OVERSEER_IS_SLAVE") == "1" {
 		bIsSlaveProcess = true
 	}
-	g.Log().Infof("Main Version:%s IsChild:%v IsSlave:%v PPidOS:%v\n", BuildID, gproc.IsChild(), bIsSlaveProcess, gproc.PPidOS())
+	g.Log().Infof("Main Version:%s IsChild:%v IsSlave:%v PPidOS:%v", BuildID, gproc.IsChild(), bIsSlaveProcess, gproc.PPidOS())
 
 	overseer.Run(overseer.Config{
 		Program:   prog,
@@ -82,8 +83,6 @@ func prog(state overseer.State) {
 		bIsSlaveProcess = true
 	}
 
-	g.Log().Infof("Version:%s IsChild:%v IsSlave:%v PPidOs:%v\n", BuildID, gproc.IsChild(), bIsSlaveProcess, gproc.PPidOS())
-
 	srv := service.SystemService{
 		Name:        "SysAgent",
 		DisplayName: "SysAgent",
@@ -98,7 +97,7 @@ func prog(state overseer.State) {
 			//连接断开自动重试，保持进程活动状态
 			for {
 
-				g.Log().Error("Wait for server online.")
+				g.Log().Notice("----------------Wait for server online.----------------")
 
 				sWsServer := sServerList[2]
 				sWsContext := sServerList[3]
@@ -109,43 +108,14 @@ func prog(state overseer.State) {
 				//尝试建立连接
 				c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 				if err != nil {
-					g.Log().Errorf("dial:", err)
+					g.Log().Errorf("dial:%v", err)
 
 					//连接失败等30秒重试
 					time.Sleep(time.Second * 30)
 					continue
 				}
 
-				//连接建立成功，设置关闭方法和退出执行过程自动关闭连接
-				c.SetCloseHandler(onClose)
-				defer c.Close()
-
-				var req = Request{}
-				var token string
-				for {
-					errRdr := c.ReadJSON(&req)
-
-					//读取信息失败，认为连接异常，自动退出当前连接
-					if errRdr != nil {
-						g.Log().Errorf("read:%v", errRdr)
-						break
-					}
-
-					token = req.TraceId
-					g.Log().Infof("recv %v\n", req)
-
-					s, err := servant.ShellExec(req.Cmd)
-
-					var sError string
-					if err != nil {
-						sError = err.Error()
-					}
-
-					Report(sMdmURL+"/report", fmt.Sprintf(`{"cmd":"%s","token":"%s","result":"%s","error":"%v"}`,
-						req.Cmd, token,
-						gbase64.EncodeString(s), gbase64.EncodeString(sError)))
-
-				}
+				doWork(c, sMdmURL)
 			}
 		},
 	}
@@ -154,6 +124,39 @@ func prog(state overseer.State) {
 }
 
 func onClose(code int, text string) error {
-	fmt.Printf("Closed\n")
+	g.Log().Error("Closed\n")
 	return nil
+}
+
+func doWork(c *websocket.Conn, sMdmURL string) {
+	//连接建立成功，设置关闭方法和退出执行过程自动关闭连接
+	c.SetCloseHandler(onClose)
+	defer c.Close()
+
+	var req = Request{}
+	var token string
+	for {
+		errRdr := c.ReadJSON(&req)
+
+		//读取信息失败，认为连接异常，自动退出当前连接
+		if errRdr != nil {
+			g.Log().Errorf("read:%v", errRdr)
+			break
+		}
+
+		token = req.TraceId
+		g.Log().Infof("recv %v", req)
+
+		s, err := servant.ShellExec(req.Cmd)
+
+		var sError string
+		if err != nil {
+			sError = err.Error()
+		}
+
+		Report(sMdmURL+"/report", fmt.Sprintf(`{"cmd":"%s","token":"%s","result":"%s","error":"%v"}`,
+			req.Cmd, token,
+			gbase64.EncodeString(s), gbase64.EncodeString(sError)))
+
+	}
 }
