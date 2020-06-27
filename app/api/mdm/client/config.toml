@@ -1,5 +1,5 @@
 [logger]
-    path   = "logs"
+    path   = "/data/projects/websocket-server/api/mdm/client/logs"
     level  = "all"
     stdout = false
     ststatus = 0
