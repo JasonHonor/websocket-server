@@ -1,0 +1,15 @@
+[logger]
+    path   = "logs"
+    level  = "all"
+    stdout = false
+    ststatus = 0
+    rotatesize = 512000
+    rotatebackuplimit=256
+    rotatebackupcompress=1
+
+[server]
+    Address    = ":8199"
+    ServerRoot = "public"
+
+[overseer]
+    source = "/data/projects/websocket-server/app/api/mdm/client/client2"

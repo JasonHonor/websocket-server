@@ -64,15 +64,10 @@ func (c *HttpEntry) Report(r *ghttp.Request) {
 }
 
 func (c *HttpEntry) Upgrade(r *ghttp.Request) {
-	g.Log().Printf("Upgrading...\n")
 
-	file := "/data/projects/websocket-server/app/api/mdm/client/client2"
+	sFile := g.Cfg().GetString("overseer.source")
 
-	/*fi, err := os.Stat(file)
+	g.Log().Debugf("Upgrading by %s", sFile)
 
-	if err != nil {
-		return
-	}*/
-
-	r.Response.ServeFileDownload(file, "client")
+	r.Response.ServeFileDownload(sFile, "client")
 }

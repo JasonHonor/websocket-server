@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"time"
@@ -56,18 +55,7 @@ func ReadWithIoutil(name string) string {
 	return ""
 }
 
-func getAppDir() string {
-	dir, errDir := filepath.Abs(filepath.Dir(os.Args[0]))
-	if errDir != nil {
-		return ""
-	}
-
-	return dir
-}
-
 func main() {
-
-	g.Cfg().SetPath(getAppDir())
 
 	bOvrDbg := g.Cfg().GetBool("overseer.debug", false)
 	sOvrURL := g.Cfg().GetString("overseer.url")

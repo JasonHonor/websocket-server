@@ -2,11 +2,22 @@ package main
 
 import (
 	_ "gfx/boot"
+	"os"
+	"path/filepath"
 
 	"gfx/library/service"
 
 	"github.com/gogf/gf/frame/g"
 )
+
+func getAppDir() string {
+	dir, errDir := filepath.Abs(filepath.Dir(os.Args[0]))
+	if errDir != nil {
+		return ""
+	}
+
+	return dir
+}
 
 func main() {
 
