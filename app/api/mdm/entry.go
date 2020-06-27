@@ -2,6 +2,7 @@ package mdm
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gogf/gf/encoding/gbase64"
 	"github.com/gogf/gf/frame/g"
@@ -67,7 +68,11 @@ func (c *HttpEntry) Upgrade(r *ghttp.Request) {
 
 	sFile := g.Cfg().GetString("overseer.source")
 
-	g.Log().Debugf("Upgrading by %s", sFile)
+	if !FileExist(sFile) {
+		g.Log().Debugf("Upgrading Failed %s", sFile)
+		r.Response.WriteStatusExit(404)
+		return
+	}
 
 	r.Response.ServeFileDownload(sFile, "client")
 }
@@ -76,7 +81,11 @@ func (c *HttpEntry) Config(r *ghttp.Request) {
 
 	sFile := g.Cfg().GetString("overseer.config")
 
-	g.Log().Debugf("GetConfig by %s", sFile)
+	if !FileExist(sFile) {
+		g.Log().Debugf("GetConfig Failed %s", sFile)
+		r.Response.WriteStatusExit(404)
+		return
+	}
 
 	r.Response.ServeFileDownload(sFile, "config.toml")
 }
@@ -88,4 +97,9 @@ func (c *HttpEntry) Deploy(r *ghttp.Request) {
 	g.Log().Debugf("Deploy by %s", sServer)
 
 	r.Response.WriteTpl("deploy.html", g.Map{"server": sServer})
+}
+
+func FileExist(path string) bool {
+	_, err := os.Lstat(path)
+	return !os.IsNotExist(err)
 }
