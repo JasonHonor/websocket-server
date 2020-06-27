@@ -2,6 +2,7 @@ package main
 
 import (
 	"client/servant"
+	"client/utils"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -180,21 +181,25 @@ func doWork(c *websocket.Conn, sMdmURL string) {
 
 		var sResult string
 		var err error = nil
+		var sReport string = ""
 
 		if req.Cmd == "init" {
-			sResult = sClientId //client_id
+			sResult = fmt.Sprintf("%s|%s|%s", sClientId, BuildID, utils.GetSysInfo())
+			sReport = fmt.Sprintf(`{"cmd":"%s","token":"%s","result":"%s","error":"%v"}`,
+				req.Cmd, token, gbase64.EncodeString(sResult), "")
 		} else {
 			sResult, err = servant.ShellExec(req.Cmd)
+
+			var sError string
+			if err != nil {
+				sError = err.Error()
+			}
+
+			sReport = fmt.Sprintf(`{"client":"%s","cmd":"%s","token":"%s","result":"%s","error":"%v"}`,
+				sClientId, req.Cmd, token, gbase64.EncodeString(sResult), sError)
 		}
 
-		var sError string
-		if err != nil {
-			sError = err.Error()
-		}
-
-		Report(sMdmURL+"/report", fmt.Sprintf(`{"cmd":"%s","token":"%s","result":"%s","error":"%v"}`,
-			req.Cmd, token,
-			gbase64.EncodeString(sResult), gbase64.EncodeString(sError)))
+		Report(sMdmURL+"/report", sReport)
 
 	}
 }

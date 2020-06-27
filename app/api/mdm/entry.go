@@ -56,9 +56,9 @@ func (c *HttpEntry) Report(r *ghttp.Request) {
 	if len(sBase64Ret) > 0 {
 		sResult, err := gbase64.DecodeString(sBase64Ret)
 		if err != nil {
-			fmt.Printf("ExecuteResult Error:%v\n", err.Error())
+			g.Log().Printf("ExecuteResult Error:%v\n", err.Error())
 		} else {
-			fmt.Printf("ExecuteResult:%v\n", string(sResult))
+			g.Log().Printf("ExecuteResult:%v\n", string(sResult))
 		}
 	}
 }
