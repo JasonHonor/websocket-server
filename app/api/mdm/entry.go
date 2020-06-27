@@ -71,3 +71,21 @@ func (c *HttpEntry) Upgrade(r *ghttp.Request) {
 
 	r.Response.ServeFileDownload(sFile, "client")
 }
+
+func (c *HttpEntry) Config(r *ghttp.Request) {
+
+	sFile := g.Cfg().GetString("overseer.config")
+
+	g.Log().Debugf("GetConfig by %s", sFile)
+
+	r.Response.ServeFileDownload(sFile, "config.toml")
+}
+
+func (c *HttpEntry) Deploy(r *ghttp.Request) {
+
+	sServer := g.Cfg().GetString("overseer.server")
+
+	g.Log().Debugf("Deploy by %s", sServer)
+
+	r.Response.WriteTpl("deploy.html", g.Map{"server": sServer})
+}

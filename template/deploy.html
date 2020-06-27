@@ -1,0 +1,6 @@
+sudo mkdir /opt/sysagent
+cd /opt/sysagent
+sudo curl -o sysagent ${.server}/update
+sudo curl -o config.toml ${.server}/config
+sudo /opt/sysagent/sysagent install
+sudo systemctl start SysAgent
