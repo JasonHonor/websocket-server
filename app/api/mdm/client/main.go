@@ -48,7 +48,7 @@ func ReadWithIoutil(name string) string {
 	if err == nil {
 		fd, err := ioutil.ReadAll(f)
 		if err != nil {
-			fmt.Println("read to fd fail", err)
+			g.Log().Errorf("read to fd fail %v", err)
 			return ""
 		}
 		return string(fd)
@@ -57,6 +57,12 @@ func ReadWithIoutil(name string) string {
 }
 
 func main() {
+
+	sValue := os.Getenv("OVERSEER_BIN_CHECK")
+	if sValue != "" {
+		fmt.Printf(sValue)
+		return
+	}
 
 	bOvrDbg := g.Cfg().GetBool("overseer.debug", false)
 	sOvrURL := g.Cfg().GetString("overseer.url")

@@ -1,5 +1,5 @@
 [logger]
-    path   = "/data/projects/websocket-server/api/mdm/client/logs"
+    path   = "logs"
     level  = "all"
     stdout = false
     ststatus = 0
@@ -8,7 +8,7 @@
     rotatebackupcompress=1
     
 [overseer]
-	debug = false
+	debug = true
 	interval = 30
 	url = "http://127.0.0.1:8199/mdm/upgrade"
 	

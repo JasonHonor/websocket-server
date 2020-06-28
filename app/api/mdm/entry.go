@@ -36,6 +36,7 @@ func (c *HttpEntry) Index(r *ghttp.Request) {
 	fmt.Printf("+")
 }
 
+//Report 接收客户端执行结果
 func (c *HttpEntry) Report(r *ghttp.Request) {
 
 	jsonData, err := r.GetJson()
@@ -64,9 +65,25 @@ func (c *HttpEntry) Report(r *ghttp.Request) {
 	}
 }
 
+func (c *HttpEntry) getOS(r *ghttp.Request) string {
+	var sOs string = ""
+	vOs := r.GetRouterVar("os")
+	if vOs != nil {
+		sOs = vOs.String()
+	}
+
+	if sOs == "" {
+		sOs = "linux"
+	}
+	return sOs
+}
+
+//Upgrade 下载升级文件
 func (c *HttpEntry) Upgrade(r *ghttp.Request) {
 
-	sFile := g.Cfg().GetString("overseer.source")
+	sOs := c.getOS(r)
+
+	sFile := g.Cfg().GetString("overseer." + sOs + ".source")
 
 	if !FileExist(sFile) {
 		g.Log().Debugf("Upgrading Failed %s", sFile)
@@ -77,9 +94,12 @@ func (c *HttpEntry) Upgrade(r *ghttp.Request) {
 	r.Response.ServeFileDownload(sFile, "client")
 }
 
+//Config 下载配置文件
 func (c *HttpEntry) Config(r *ghttp.Request) {
 
-	sFile := g.Cfg().GetString("overseer.config")
+	sOs := c.getOS(r)
+
+	sFile := g.Cfg().GetString("overseer." + sOs + ".config")
 
 	if !FileExist(sFile) {
 		g.Log().Debugf("GetConfig Failed %s", sFile)
@@ -90,6 +110,7 @@ func (c *HttpEntry) Config(r *ghttp.Request) {
 	r.Response.ServeFileDownload(sFile, "config.toml")
 }
 
+//Deploy 下载部署脚本，仅限Linux
 func (c *HttpEntry) Deploy(r *ghttp.Request) {
 
 	sServer := g.Cfg().GetString("overseer.server")
@@ -99,6 +120,7 @@ func (c *HttpEntry) Deploy(r *ghttp.Request) {
 	r.Response.WriteTpl("deploy.html", g.Map{"server": sServer})
 }
 
+//FileExist 判断文件是否存在
 func FileExist(path string) bool {
 	_, err := os.Lstat(path)
 	return !os.IsNotExist(err)

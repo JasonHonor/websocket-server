@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -11,7 +10,7 @@ import (
 )
 
 func Report(url string, data string) {
-	fmt.Printf("DoRport.%s %s\n", url, data)
+	g.Log().Printf("DoRport.%s %s\n", url, data)
 
 	btData := []byte(data)
 
@@ -34,8 +33,8 @@ func Report(url string, data string) {
 	defer client.CloseIdleConnections()
 
 	// Validate cookie and headers are attached
-	fmt.Println(req.Cookies())
-	fmt.Println(req.Header)
+	g.Log().Println(req.Cookies())
+	g.Log().Println(req.Header)
 
 	// Send request
 	resp, err := client.Do(req)
@@ -45,8 +44,8 @@ func Report(url string, data string) {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
+	g.Log().Println("response Status:", resp.Status)
+	g.Log().Println("response Headers:", resp.Header)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -54,5 +53,5 @@ func Report(url string, data string) {
 		return
 	}
 
-	fmt.Printf("%s\n", body)
+	g.Log().Printf("%s\n", body)
 }

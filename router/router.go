@@ -26,6 +26,12 @@ func init() {
 	s.Group("/", func(group *ghttp.RouterGroup) {
 
 		//group.Middleware(middleware.CORS)
-		group.ALL("/mdm", new(mdm.HttpEntry))
+		entry := new(mdm.HttpEntry)
+		group.ALL("/mdm/config/{os}", entry.Config)
+		group.ALL("/mdm/upgrade/{os}", entry.Upgrade)
+		//group.ALL("/mdm/deplpy", entry.Deploy)
+		//group.ALL("/mdm/list", entry.List)
+		//group.ALL("/mdm/push", entry.Push)
+		group.ALL("/mdm", entry)
 	})
 }
