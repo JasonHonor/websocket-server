@@ -19,3 +19,5 @@ require (
 replace gfx => ../../../../../websocket-server
 
 replace github.com/jpillora/overseer => ../../../../../overseer
+
+replace github.com/jvehent/service-go => ../../../../../service-go
