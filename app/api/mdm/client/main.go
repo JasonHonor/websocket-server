@@ -58,12 +58,6 @@ func ReadWithIoutil(name string) string {
 
 func main() {
 
-	sValue := os.Getenv("OVERSEER_BIN_CHECK")
-	if sValue != "" {
-		fmt.Printf(sValue)
-		return
-	}
-
 	bOvrDbg := g.Cfg().GetBool("overseer.debug", false)
 	sOvrURL := g.Cfg().GetString("overseer.url")
 	nOvrIvl := g.Cfg().GetInt64("overseer.interval", 30)
